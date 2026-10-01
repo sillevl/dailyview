@@ -1,0 +1,120 @@
+# Add this top-level entry to Home Assistant's scripts.yaml.
+# Replace the device ID and entity IDs as explained in ../docs/setup.md.
+# This is a portable version of the live production script, not a live config export.
+dailyview_display:
+  alias: DailyView display
+  mode: single
+  sequence:
+    - action: calendar.get_events
+      target:
+        entity_id:
+          - calendar.primary
+          - calendar.secondary
+      data:
+        duration:
+          days: 3
+      response_variable: agenda
+    - action: weather.get_forecasts
+      target:
+        entity_id: weather.local
+      data:
+        type: daily
+      response_variable: daily_weather
+    - variables:
+        left_payload:
+          - type: rectangle
+            x_start: 0
+            y_start: 0
+            x_end: 369
+            y_end: 479
+            fill: '#202020'
+            outline: '#202020'
+          - type: text
+            value: >-
+              {{ ['JANUARI','FEBRUARI','MAART','APRIL','MEI','JUNI',
+                  'JULI','AUGUSTUS','SEPTEMBER','OKTOBER','NOVEMBER','DECEMBER']
+                  [now().month - 1] }}
+            font: ppb
+            x: 185
+            'y': 39
+            anchor: mt
+            size: 28
+            color: '#F0E7D6'
+          - type: text
+            value: '{{ now().day }}'
+            font: ppb
+            x: 185
+            'y': 78
+            anchor: mt
+            size: 205
+            color: '#A9C8F4'
+          - type: text
+            value: >-
+              {{ ['MAANDAG','DINSDAG','WOENSDAG','DONDERDAG',
+                  'VRIJDAG','ZATERDAG','ZONDAG'][now().weekday()] }}
+            font: ppb
+            x: 185
+            'y': 248
+            anchor: mt
+            size: 42
+            color: white
+          - type: line
+            x_start: 85
+            x_end: 285
+            y_start: 300
+            y_end: 300
+            width: 2
+            fill: '#B9C6B0'
+        weather_payload: |-
+          {% set ns = namespace(today=none, items=[]) %} {% for day in daily_weather['weather.local'].forecast %}
+            {% if as_local(as_datetime(day.datetime)).date() == now().date() %}
+              {% set ns.today = day %}
+            {% endif %}
+          {% endfor %} {% if ns.today is not none and ns.today.temperature is defined and is_number(ns.today.temperature) %}
+            {% set icons = {'sunny':'weather-sunny', 'clear-night':'weather-night', 'partlycloudy':'weather-partly-cloudy', 'cloudy':'weather-cloudy', 'rainy':'weather-rainy', 'pouring':'weather-pouring', 'lightning':'weather-lightning', 'lightning-rainy':'weather-lightning-rainy', 'fog':'weather-fog', 'hail':'weather-hail', 'snowy':'weather-snowy', 'snowy-rainy':'weather-snowy-rainy', 'windy':'weather-windy', 'windy-variant':'weather-windy-variant'} %}
+            {% set icon_name = icons.get(ns.today.condition | default('', true), 'weather-cloudy-alert') %}
+            {% set icon_colors = {'sunny':'#F4CE45', 'partlycloudy':'#E2D7AB', 'cloudy':'#C5CBD0', 'fog':'#C5CBD0', 'rainy':'#74BCE8', 'pouring':'#589BD8', 'lightning':'#F3CD59', 'lightning-rainy':'#F3CD59', 'snowy':'#F2F5F7', 'snowy-rainy':'#F2F5F7', 'windy':'#AFD6B8', 'windy-variant':'#AFD6B8'} %}
+            {% set icon_color = icon_colors.get(ns.today.condition | default('', true), '#F0E7D6') %}
+            {% set ns.items = [
+              dict(type='icon', value='mdi:' ~ icon_name, x=115, y=390, size=120, color=icon_color, anchor='mm'),
+              dict(type='text', value=(ns.today.temperature | float | round(0) | int | string) ~ '°', font='ppb', x=200, y=390, size=50, color='#F0E7D6', anchor='lm')
+            ] %}
+          {% else %}
+            {% set ns.items = [dict(type='text', value='--°', font='ppb', x=200, y=390, size=50, color='#F0E7D6', anchor='lm')] %}
+          {% endif %} {{ ns.items }}
+        calendar_payload: |-
+          {% set ns = namespace(items=[dict(type='text', value='Kalender', font='ppb', x=585, y=39, anchor='mt', size=28, color='#52180A'), dict(type='line', x_start=470, x_end=700, y_start=84, y_end=84, width=3, fill='#968327')]) %} {% set events = ((agenda['calendar.primary'].events + agenda['calendar.secondary'].events) | sort(attribute='start'))[:5] %} {% if events | count == 0 %}
+            {% set ns.items = ns.items + [
+              dict(type='text', value='Even geen plannen', font='ppb', x=585, y=250, anchor='mm', size=28, color='#52180A', max_width=365, truncate=true),
+              dict(type='text', value='Tijd voor iets leuks!', font='rbm', x=585, y=290, anchor='mm', size=22, color='#52180A', max_width=365, truncate=true)
+            ] %}
+          {% else %} {% for event in events %}
+            {% set top = 100 + loop.index0 * 70 %}
+            {% set begins = as_local(as_datetime(event.start)) %}
+            {% set ends = as_local(as_datetime(event.end)) %}
+            {% if (event.start | string | length) == 10 %}
+              {% set when = begins.strftime('%d/%m') %}
+            {% elif begins.date() != ends.date() %}
+              {% set when = begins.strftime('%d/%m   %H:%M') ~ '–' ~ ends.strftime('%d/%m   %H:%M') %}
+            {% else %}
+              {% set when = begins.strftime('%d/%m   %H:%M') ~ '–' ~ ends.strftime('%H:%M') %}
+            {% endif %}
+            {% set today_start = today_at('00:00') %}
+            {% set today_end = today_start + timedelta(days=1) %}
+            {% set applies_today = begins < today_end and ends > today_start %}
+            {% set ns.items = ns.items + ([dict(type='rectangle', x_start=390, y_start=top-6, x_end=785, y_end=top+54, fill='#CBE3CE', outline='#CBE3CE')] if applies_today else []) + [
+              dict(type='line', x_start=402, x_end=402, y_start=top, y_end=top+48, width=3, fill='#968327'),
+              dict(type='text', value=when, font='ppb', x=415, y=top, anchor='lt', size=21, color='black', max_width=365, truncate=true),
+              dict(type='text', value=(event.summary | default('Zonder titel', true)), font='rbm', x=415, y=top+26, anchor='lt', size=20, color='black', max_width=365, truncate=true)
+            ] %}
+          {% endfor %} {% endif %} {% set battery = states('sensor.display_battery') %} {% set ns.items = ns.items + [dict(type='text', value=now().strftime('%d/%m/%Y %H:%M') ~ ' - ' ~ (battery ~ '%' if is_number(battery) else 'n.b.'), font='rbm', x=798, y=478, anchor='rb', size=14, color='#888888', max_width=350, truncate=true)] %} {{ ns.items }}
+    - action: opendisplay.drawcustom
+      target:
+        device_id: REPLACE_WITH_YOUR_DEVICE_ID
+      data:
+        background: white
+        rotate: 0
+        dither: floyd_steinberg
+        refresh_type: fast
+        dry-run: false
+        payload: '{{ left_payload + weather_payload + calendar_payload }}'

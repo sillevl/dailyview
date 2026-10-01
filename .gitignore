@@ -1,0 +1,18 @@
+# Keep local previews, live configuration and credentials out of this public repo.
+.local/
+.env
+.env.*
+!.env.example
+.venv/
+__pycache__/
+*.pyc
+*.log
+*.log.*
+*.db
+*.db-*
+*.bak
+*.bak-*
+secrets.yaml
+.storage/
+.cloud/
+ssh_config

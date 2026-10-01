@@ -1,0 +1,17 @@
+# Add this list item to Home Assistant's automations.yaml.
+# It expects the script key dailyview_display from scripts.yaml.
+- alias: Update DailyView
+  description: Render the current date, forecast and upcoming calendar events
+  triggers:
+    - trigger: time
+      at:
+        - '00:00:00'
+        - '06:00:00'
+        - '11:00:00'
+        - '17:00:00'
+  conditions: []
+  actions:
+    - action: script.turn_on
+      target:
+        entity_id: script.dailyview_display
+  mode: single
