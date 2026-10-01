@@ -1,6 +1,14 @@
 # Add this top-level entry to Home Assistant's scripts.yaml.
 # Replace the device ID and entity IDs as explained in ../docs/setup.md.
 # This is a portable version of the live production script, not a live config export.
+# INPUT CONTRACT (see ../docs/offline-preview.md for offline JSON fixtures):
+#   agenda: calendar.get_events response keyed by calendar.primary/secondary,
+#           each with an .events list of {start, end, summary} records.
+#   daily_weather: weather.get_forecasts response keyed by weather.local,
+#                  with a .forecast list containing datetime, condition, temperature.
+#   now(): Home Assistant local clock; states('sensor.display_battery'): percentage
+#          or an unavailable/non-numeric value. Replace IDs in targets AND templates.
+# The layout is below the two data-fetch actions, in the three payload variables.
 dailyview_display:
   alias: DailyView display
   mode: single

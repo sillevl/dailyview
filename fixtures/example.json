@@ -1,0 +1,19 @@
+{
+  "at": "2026-10-01T09:00:00+02:00",
+  "events": [
+    {
+      "start": "2026-10-01T11:00:00+02:00",
+      "end": "2026-10-01T11:45:00+02:00",
+      "summary": "Pick up a parcel",
+      "calendar": 0
+    },
+    {
+      "start": "2026-10-02",
+      "end": "2026-10-03",
+      "summary": "A day off",
+      "calendar": 1
+    }
+  ],
+  "weather": { "condition": "partlycloudy", "temperature": 19.3 },
+  "battery": 87
+}

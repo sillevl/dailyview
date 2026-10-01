@@ -30,12 +30,26 @@ Weather ─────┘           ↑                                   ↑
 
 See the [step-by-step setup guide](docs/setup.md) for firmware installation, entity substitutions, validation and a dry-run preview.
 
+## Develop offline
+
+Use Python **3.11+** and [`odl-renderer==0.5.12`](requirements-preview.txt) to generate a local PNG directly from the layout templates in the YAML example—no Home Assistant connection or display required. On Windows, from this directory:
+
+```powershell
+python -m venv .venv
+.venv/Scripts/python.exe -m pip install -r requirements-preview.txt
+.venv/Scripts/python.exe preview.py --scenario busy --at 2026-10-01T09:00:00+02:00 --output .local/busy.png
+.venv/Scripts/python.exe -m unittest discover -s tests -v
+```
+
+The `empty`, `today`, `busy` and `long-text` scenarios use synthetic data. You can also supply a JSON fixture or export the resolved ODL elements for tooling. See [offline preview and input format](docs/offline-preview.md), including macOS/Linux commands and the differences from a true E1002 render.
+
 ## Start here
 
 1. [Set up hardware, integrations, entities and YAML](docs/setup.md).
 2. [Understand the exact rendering logic and settings](docs/implementation.md).
 3. [Operate, test and troubleshoot the display](docs/operations.md).
 4. Adapt the complete, portable [script](examples/scripts.yaml) and [automation](examples/automations.yaml) to your own Home Assistant instance.
+5. [Render and test with synthetic inputs offline](docs/offline-preview.md).
 
 **Do not copy the example blindly.** Substitute your device ID and the two calendar, weather and battery entity IDs everywhere they appear (including Jinja dictionary keys); then validate and preview before enabling physical delivery. The example is intentionally stripped of device identifiers and credentials.
 
