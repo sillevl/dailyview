@@ -21,6 +21,15 @@ Weather ─────┘           ↑                                   ↑
                    four time triggers                 next deep-sleep wake
 ```
 
+## Requirements
+
+- **Hardware:** a Seeed reTerminal E1002 (800 × 480 color e-paper) running [OpenDisplay firmware](https://wiki.seeedstudio.com/EN04_opendisplay/), within range of a Bluetooth adapter or ESPHome proxy that supports **active BLE connections**. A passive-only proxy cannot upload frames.
+- **Home Assistant 2026.7.0+** with the [OpenDisplay custom integration](https://github.com/OpenDisplay/Home_Assistant_Integration) installed (HACS or manual), configured for the display, and providing `opendisplay.drawcustom`. Home Assistant's built-in `opendisplay.upload_image` action alone is **not sufficient** for this script.
+- **Data sources:** two working `calendar.*` entities for the example as written, and one `weather.*` entity supporting `weather.get_forecasts` with `type: daily` and a numeric forecast temperature. You can adapt the script for one calendar. The display's battery sensor is optional; without it, the footer shows `n.b.`.
+- **Configuration:** access to Home Assistant scripts and automations, your own display device ID and entity IDs, and the display's BLE encryption key **if encryption is enabled**. Keep the key private. The bundled fonts need no separate download.
+
+See the [step-by-step setup guide](docs/setup.md) for firmware installation, entity substitutions, validation and a dry-run preview.
+
 ## Start here
 
 1. [Set up hardware, integrations, entities and YAML](docs/setup.md).
